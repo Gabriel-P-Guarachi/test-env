@@ -1,0 +1,307 @@
+
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .controls {
+        margin-top: 10px;
+        border: 1px solid transparent;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        height: 32px;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 300px;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+      }
+
+      .pac-container {
+        font-family: Roboto;
+      }
+
+      #type-selector {
+        color: #fff;
+        background-color: #4d90fe;
+        padding: 5px 11px 0px 11px;
+      }
+
+      #type-selector label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+      }
+      #target {
+        width: 345px;
+      }
+    </style>
+
+<script>
+    function $_GET(param)
+    {
+    /* Obtener la url completa */
+    url = document.URL;
+    /* Buscar a partir del signo de interrogación ? */
+    url = String(url.match(/\?+.+/));
+    /* limpiar la cadena quitándole el signo ? */
+    url = url.replace("?", "");
+    /* Crear un array con parametro=valor */
+    url = url.split("&");
+    
+    /* 
+    Recorrer el array url
+    obtener el valor y dividirlo en dos partes a través del signo = 
+    0 = parametro
+    1 = valor
+    Si el parámetro existe devolver su valor
+    */
+    x = 0;
+    while (x < url.length)
+    {
+    p = url[x].split("=");
+    if (p[0] == param)
+    {
+    return decodeURIComponent(p[1]);
+    }
+    x++;
+    }
+    }
+    
+    
+    //alert($_GET("id_cliente"));
+    
+    </script>
+    <input id="pac-input"  name="pac"  class="controls" type="text" placeholder="Buscar">
+    <div id="map"></div>
+    <form class="form-horizontal" role="form" name="form" id="form">
+              <!--      <input type="hidden" class="form-control" name="_token" id="token" value="{{ csrf_token() }}"> -->
+
+
+    <input id="latitud" type="hidden" value="" name="latitud"  >
+
+</form>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUOGoHy6TAtigLWSuQD0qA2RxxX4buoRI&libraries=places"></script>
+  <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+    
+    <script>
+    $(document).ready(function(){
+//   alert('hola');
+
+
+});
+    initAutocomplete() ;
+    //parent.document.getElementById("direccion").value="valor de la variable";
+      // This example adds a search box to a map, using the Google Place Autocomplete
+      // feature. People can enter geographical searches. The search box will return a
+      // pick list containing a mix of places and predicted search terms.
+
+      // This example requires the Places library. Include the libraries=places
+      // parameter when you first load the API. For example:
+      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+      canbiarPosocion=function(event){
+
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: event.latLng }, function (results, status) {
+          console.log({results, status});
+          if (status === google.maps.GeocoderStatus.OK) {
+            var direccion = results[0].address_components[0].short_name;
+            var direccionmax = results[1].formatted_address;
+
+            alert('Hello world')
+
+            /*const urlParams = new URLSearchParams(window.location.search);
+
+            urlParams.set('order', 'date');
+
+            window.location.search = urlParams;*/
+
+            console.log('urlParams', window.location.search);
+          }
+        })
+     //  alert("ss");
+     var location=event.latLng
+    // alert(JSON.stringify(location));
+    //$rootScope.datauser.Nombre_tercero=document.getElementById('Nombre_tercero').val();
+   var latitud=location.lat();
+   var longitud=location.lng();
+  //  alert(latitud +"    "+longitud);
+            var datos={};
+
+        datos.latitud=latitud;
+        datos.longitud=longitud;
+        datos.direccion_map=$("#pac-input").val();
+
+// mandar id cliente mas ojo
+        $.ajax( {
+          url: $_GET("uri")+"insert_map.php", //"http://www.csapek.innovatest.site/mobile/insert_map.php",
+            type: 'POST',
+          //  headers:{'X-CSRF-TOKEN':token},
+            // token: csrf_token,
+            data: datos,
+            // processData: false,
+            dataType:'json',
+            success: function (responsedata) {
+            alert(responsedata);
+
+            }
+
+        });
+
+
+   }
+
+      function initAutocomplete() {
+	   //	alert("lat "+$_GET("lat")+"   lon"+$_GET("lon")); 
+        var map = new google.maps.Map(document.getElementById('map'), {
+         // center: {lat: -16.290154, lng: -63.58865300000002},
+          center: {lat: parseInt($_GET("lat")),lng: parseInt( $_GET("lon"))},
+		  // 
+          zoom: 5,
+          mapTypeId: 'roadmap'
+        });
+
+        
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // Clear out the old markers.
+          markers.forEach(function(marker) {
+            marker.setMap(null);
+          });
+          markers = [];
+
+          // For each place, get the icon, name and location.
+       //   alert(places.length);
+         // if (places.length > 1){
+                               //  alert("es mayor a 1");
+                               //  return true;
+         // }else{
+                      var bounds = new google.maps.LatLngBounds();
+                      sw=0;
+                        places.forEach(function(place) {
+                        if (sw==0){
+                            if (!place.geometry) {
+                              console.log("Returned place contains no geometry");
+                              return;
+                            }
+                            var icon = {
+                              url: place.icon,
+                              size: new google.maps.Size(71, 71),
+                              origin: new google.maps.Point(0, 0),
+                              anchor: new google.maps.Point(17, 34),
+                              scaledSize: new google.maps.Size(25, 25)
+                            };
+
+                            // Create a marker for each place.
+                            markers.push(new google.maps.Marker({
+                              map: map,
+                            // icon: icon,
+                              title: place.name,
+                              position: place.geometry.location,
+                              draggable:true
+                            }));
+               //   alert("----------- lat : "+place.geometry.location.lat()+"  long : "+place.geometry.location.lng());
+                     // alert("-----------"+place.geometry.location.lng());
+                           // $("#latitud").val("dvdv"+place.geometry.location.lat());
+                        //   document.getElementById("latitud").value = place.geometry.location.lng();
+
+
+               var datos={};
+
+              datos.latitud=place.geometry.location.lat();
+              datos.longitud=place.geometry.location.lng();
+              datos.direccion_map=$("#pac-input").val();
+              
+          //    alert("map/assets/insertar.php");
+              $.ajax( {
+                  url:  $_GET("uri")+"insert_map.php", //"http://www.csapek.innovatest.site/mobile/insert_map.php",
+                  type: 'POST',
+                //  headers:{'X-CSRF-TOKEN':token},
+                  // token: csrf_token,
+                  data: datos,
+                  // processData: false,
+                  dataType:'json',
+                  success: function (responsedata) {
+                   alert(responsedata);
+              
+                  }
+
+              });
+
+
+                          // parent.document.getElementById("direccion").value="valor de la variable";
+                      //    parent.document.getElementById("variablePadre").value="valor de la variable";
+                        //   $.post("http://localhost:8080/miSitio/laravel/laravel%205.2/resources/views/sucursal/sucursal.blade.php", function(htmlexterno){
+                         //  $("#direccion").html(2);
+    	                    //});
+                   // alert(JSON.stringify( place.geometry.location))
+                  //  alert( place.geometry.location.lat());
+                  //  $("#direccion").val(place.geometry.location.lat());
+
+                            if (place.geometry.viewport) {
+                              // Only geocodes have viewport.
+                              bounds.union(place.geometry.viewport);
+                            } else {
+                              bounds.extend(place.geometry.location);
+                            }
+                            
+              
+                          }
+                          sw++;
+                      
+                      });
+                      
+
+        //  }
+         
+
+                     markers.forEach(function(marker) {
+                     marker.addListener('dragend',canbiarPosocion);
+           });
+
+          map.fitBounds(bounds);
+        });
+      }
+
+    </script>
+
